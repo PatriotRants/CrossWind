@@ -1,6 +1,7 @@
-namespace ForgeWorks.CrossWind.Core;
+namespace ForgeWorks.CrossWind.Presentation;
 
-public enum Visibility {
+public enum Visibility
+{
     Unknown = -1,
     Hidden = 0,
     Visible = 1,

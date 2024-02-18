@@ -6,15 +6,10 @@ using ForgeWorks.CrossWind.Core;
 using ForgeWorks.CrossWind.Collections;
 
 
-namespace UnitTests;
+namespace CrossWind.UnitTests;
 
 public class RegistriesTests
 {
-    private static readonly DateTime NOW = DateTime.Now;
-
-    DateTime Now { get; set; } = NOW;
-    DateTime Then { get; set; }
-
     /// <summary>
     /// Checks to see if all the required registries are initialized
     /// </summary>
@@ -64,6 +59,88 @@ public class RegistriesTests
 
         Assert.AreEqual(expected, actual);
     }
+    /*
+        Expectation:    Retrieves all items of a specified type
+        Functions:      Returns enumerable collection of items specified by type
+        Test:           
+                        - count: expected number of items returned
+                        - verify: correct items returned
+        Assumptions:    Only specified items exist in current registry
+    */
+    [TestCase]
+    public void GetAllOfType()
+    {
+        const string acTEST1 = "TEST1";
+        const string acTEST2 = "TEST2";
+
+        Registries.Controllers.Create<ApplicationController>(acTEST1);
+        Registries.Controllers.Create<ApplicationController>(acTEST2);
+
+        var controllers = Registries.Controllers.GetAll<ApplicationController>()
+            .ToArray();
+
+        Assert.IsTrue(controllers.Length == 2);
+        Vassert.AreEqual(acTEST1, controllers[0].Name);
+        Vassert.AreEqual(acTEST2, controllers[1].Name);
+    }
+    /*
+        Expectation:    Dispose and remove controllers from registry
+        Functions:
+                        - retrieves controller by type
+                        - calls controller `Dispose(...)` method
+                        - removes controller from registry
+        Test:           Controller not in registry
+        Discussion:     Until we mock controller object, we will use a log statement to visually
+                        verify the Dispose method is being called.
+                        Implemented `OnDisposing` event on base Controller.
+                        Implemented virtual `Dispose(...)` method on Controller.
+        Asseumptions:   ?
+    */
+    [TestCase]
+    public void KillAllControllerType()
+    {
+        const string acTEST1 = "TEST1";
+        const string acTEST2 = "TEST2";
+
+        var ctrllrA = default(IApplicationController);
+        var ctrllrB = default(IApplicationController);
+
+        var isDisposedA = false;
+        var isDisposedB = false;
+
+        var controllers = Registries.Controllers.GetAll<ApplicationController>()
+            .ToList();
+
+        if (controllers.Count == 0)
+        {
+            controllers.Add(ctrllrA = Registries.Controllers.Create<ApplicationController>(acTEST1));
+            controllers.Add(ctrllrB = Registries.Controllers.Create<ApplicationController>(acTEST2));
+        }
+        else
+        {
+            Assert.IsTrue(controllers.Count == 2);
+
+            ctrllrA = (IApplicationController)controllers[0];
+            ctrllrB = (IApplicationController)controllers[1];
+        }
+
+        ctrllrA.OnDisposing += (id) =>
+        {
+            Log($"Disposing {id.Name}");
+            isDisposedA = true;
+        };
+        ctrllrB.OnDisposing += (id) =>
+        {
+            Log($"Disposing {id.Name}");
+            isDisposedB = true;
+        };
+
+        var areDead = Registries.Controllers.Kill<ApplicationController>();
+
+        Assert.IsTrue(isDisposedA);
+        Assert.IsTrue(isDisposedB);
+        Assert.IsTrue(areDead);
+    }
 
     [TestCase]
     public void CreateController()
@@ -88,7 +165,7 @@ public class RegistriesTests
 
 public class TestAppController : Controller
 {
-    public TestAppController() : base("TestApp", typeof(TestAppController))
+    public TestAppController() : base("TestApp")
     {
     }
 }

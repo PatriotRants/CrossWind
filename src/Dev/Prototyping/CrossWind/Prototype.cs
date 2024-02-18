@@ -8,6 +8,7 @@ using static CrossWind.Prototype.Harness.Handlers;
 using static CrossWind.Prototype.Harness.Evaluator;
 
 using ForgeWorks.CrossWind.Core;
+using ForgeWorks.CrossWind.Collections;
 
 
 const string KEYBIND_CONFIG = "keybinding.cfg";
@@ -31,7 +32,7 @@ Evaluate<NoOpApplication>(SKIP, (app) => app.Run(), n, d);
 //  run no-op application with application controller events
 n = "No-Op App Controller";
 d = "run no-op application with application controller events";
-Evaluate<NoOpApplication>(EVAL, (app) =>
+Evaluate<NoOpApplication>(SKIP, (app) =>
 {
     //  get the application controller
     IApplicationController controller = app.Controller;
@@ -39,8 +40,18 @@ Evaluate<NoOpApplication>(EVAL, (app) =>
 
     controller.OnAppStartUp += () => OnNoOpAppStartUp(n);
     app.Run();
+
 }, n, d);
 
+//  on start up, initialize Headless View Controller
+n = "Headless View Controller";
+d = "on start up, initialize Headless View Controller";
+Evaluate<WindowControllerApp>(EVAL, (app) =>
+{
+    app.Controller.OnAppStartUp += () =>
+        app.OnAppStart(new HeadlessViewController(n));
+
+}, n, d);
 
 namespace CrossWind.Prototype.Harness
 {
@@ -98,9 +109,20 @@ namespace CrossWind.Prototype.Harness
         public NoOpApplication(string name) : base(name) { }
 
         protected override void OnStartUp()
-        {   //  DOC: if overriden, either call `base.OnStartUp` or `Controller.StartUp`
+        {   //  DOC: call `base.OnStartUp` to raise OnAppStartUp event at any point
             Log($"[App: {Name}] (v.{CrossWindVersion})::{Id.GetHashCode()}");
-            Controller.StartUp();
+            base.OnStartUp();
+        }
+    }
+    internal class WindowControllerApp : Application
+    {
+        public WindowControllerApp(string name) : base(name) { }
+
+        internal void OnAppStart(IViewController viewController)
+        {
+            Log($"[{nameof(Application)}.{nameof(OnAppStart)}] {viewController.Name}");
+            //  initializes the Window pipeline
+            Controller.Initialize(viewController);
         }
     }
 
@@ -112,7 +134,11 @@ namespace CrossWind.Prototype.Harness
         }
     }
 
-    #region test windows
 
-    #endregion
+    internal class HeadlessViewController : ViewController
+    {
+        public HeadlessViewController(string name) : base(name)
+        {
+        }
+    }
 }

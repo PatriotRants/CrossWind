@@ -1,8 +1,9 @@
 namespace MinuteMan.Runtime;
 
-public enum Args
+public enum ArgSwitch
 {
     Source = 0,
     Assembly = 1,
-    Output = 2,
+    Class = 2,
+    Output = 3,
 }

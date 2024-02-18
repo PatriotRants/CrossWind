@@ -51,15 +51,11 @@ while (agentState != AgentState.Exit)
 Console.WriteLine($"MinuteMan TestAgent has exited with code {(int)status}[{status}:{ErrCode}].");
 
 #region execution states
-const string SOURCE = "-s";
-const string ASSEMBLY = "-a";
-const string OUTPUT = "-l";
-
 static RunStatus Initialize(ref AgentState agentState, string[] args)
 {
     RunStatus status = RunStatus.Okay;
 
-    //  args input length just need not be zero
+    //  ArgSwitch input length just need not be zero
     if (args.Length > 0)
     {
         var iterator = args.AsReadOnly()
@@ -67,22 +63,33 @@ static RunStatus Initialize(ref AgentState agentState, string[] args)
         while (iterator.MoveNext())
         {
             string[] param = iterator.Current.Split(":", StringSplitOptions.TrimEntries);
+            ArgSwitch argType = GetArgSwitch(param[0]);
 
-            switch (param[0])
+            /*  switch statement can be refactored out;
+                having implemented logic for multiple forms of ArgSwitch ('-s', '--source'), we now 
+                  look up the arg type (source, output, etc) and could just add to the parameters;
+                leaving the switch implemented, while verbose, does not impair efficiency and
+                  will give a logical reference to where additional pre- or post-processing can 
+                  occur
+            */
+            switch (argType)
             {
-                case SOURCE:
+                case ArgSwitch.Source:
                     //  we are going to just try and add - 2nd -s will not override previous values
-                    Parameters.TryAdd(Args.Source, param[1]);
+                    Parameters.TryAdd(ArgSwitch.Source, param[1]);
 
                     break;
-                case ASSEMBLY:
+                case ArgSwitch.Assembly:
                     //  user specified assembly name
-                    Parameters.TryAdd(Args.Assembly, param[1]);
+                    Parameters.TryAdd(ArgSwitch.Assembly, param[1]);
 
                     break;
-                case OUTPUT:
+                case ArgSwitch.Class:
+                    Parameters.TryAdd(ArgSwitch.Class, param[1]);
+                    break;
+                case ArgSwitch.Output:
                     //  same; do not overwrite a previous value
-                    Parameters.TryAdd(Args.Output, param[1]);
+                    Parameters.TryAdd(ArgSwitch.Output, param[1]);
 
                     break;
                 default:
@@ -90,7 +97,7 @@ static RunStatus Initialize(ref AgentState agentState, string[] args)
             }
         }
 
-        //  if we don't have Args.Source then we need to stop
+        //  if we don't have ArgSwitch.Source then we need to stop
         if (!ValidateSource())
         {
             agentState = AgentState.End;
@@ -100,7 +107,7 @@ static RunStatus Initialize(ref AgentState agentState, string[] args)
 
         Stream stream;
         //  checks to ensure we configure a console output stream (TextWriter)
-        if (TrySetParameter(Args.Output, "Default"))
+        if (TrySetParameter(ArgSwitch.Output, "Default"))
         {
             stream = Console.OpenStandardOutput();
         }
@@ -118,13 +125,13 @@ static RunStatus Initialize(ref AgentState agentState, string[] args)
     return status;
 }
 
-static RunStatus Begin(ref AgentState agentState, string[] args)
+static RunStatus Begin(ref AgentState agentState, string[] ArgSwitch)
 {
     RunStatus status = RunStatus.Okay; ;
 
     Logger.WriteLine("Begin MUTM Discovery ...");
 
-    // if(args.Length < 1) {
+    // if(ArgSwitch.Length < 1) {
     //     Console.WriteLine("Invalid Target Parameter");
     //     agentState = AgentState.End;
 
@@ -134,7 +141,7 @@ static RunStatus Begin(ref AgentState agentState, string[] args)
     // Console.WriteLine($"Root: {Directory.GetCurrentDirectory()}");
     // agentState = AgentState.End;
 
-    // if(!ValidateSource(args[0])) {
+    // if(!ValidateSource(ArgSwitch[0])) {
     //     status = RunStatus.Error;
     // }
     // Console.WriteLine($"Working: {Working}");
@@ -142,10 +149,14 @@ static RunStatus Begin(ref AgentState agentState, string[] args)
 
     if (!TryLoadAssembly(out Assembly assembly))
     {
+        //  need to implement an error strategy
         status = RunStatus.Error;
     }
-    Logger.WriteLine($"Assembly Loaded: {assembly.GetName().Name}");
-    agentState = AgentState.Configure;
+    else
+    {
+        Logger.WriteLine($"Assembly Loaded: {assembly.GetName().Name}");
+        agentState = AgentState.Configure;
+    }
 
     return status;
 }
@@ -195,24 +206,53 @@ public static partial class Program
 {
     private const string TESTLOGDIR = "TestCaseLogs";
 
-    static Dictionary<Args, string> Parameters { get; } = new();
+    static readonly string[] SOURCE = { "-s", "--source" };
+    static readonly string[] ASSEMBLY = { "-a", "--assembly" };
+    static readonly string[] CLASS = { "-c", "--class" };
+    static readonly string[] OUTPUT = { "-l", "--log" };
+
+    static Dictionary<ArgSwitch, string> Parameters { get; } = new();
     static TextWriter DefaultOutput { get; set; } = Console.Out;
     static Logger Logger { get; set; }
     static DirectoryInfo Working { get; set; } = new("null");
     static DirectoryInfo TestLogs { get; set; } = new("null");
     static FileInfo Target { get; set; } = new("null");
     static Dictionary<Type, List<MethodInfo>> TestCases { get; } = new();
-    static int ErrCode { get; set; } = 0;
+
+    /*  kind of a reverse lookup since the incoming arg is a value within an array, we are looking
+    for the arg type; logically searching a set of string array keys is not intuitive
+    */
+    static Dictionary<ArgSwitch, string[]> SwitchLookup = new() {
+    { ArgSwitch.Source, SOURCE },
+    { ArgSwitch.Assembly, ASSEMBLY},
+    { ArgSwitch.Class, CLASS },
+    { ArgSwitch.Output, OUTPUT}
+};
+    static ErrCode ErrCode { get; set; } = 0;
     static Agent Agent { get; set; } = null;
+
+    /// <summary>
+    /// Looks up the arg switch type
+    /// </summary>
+    /// <param name="arg">switch value</param>
+    /// <returns><see cref="ArgSwitch"/></returns>
+    static ArgSwitch GetArgSwitch(string arg)
+    {
+        return SwitchLookup
+            .FirstOrDefault(kv => kv.Value.Contains(arg))
+            .Key;
+    }
     /// <summary>
     /// Valide target directory contains the expected .dll
+    /// 
+    /// TODO: finish out ErrCode implementation (log errors)
     /// </summary>
     static bool ValidateSource(string target)
     {
         //  target should be a directory to the project containing test cases
         if (!Directory.Exists(target))
         {
-            ErrCode = 1001;
+            ErrCode = ErrCode.E1001;
 
             return false;
         }
@@ -222,7 +262,7 @@ public static partial class Program
         Working = new(target);
 
         string assemblyFile = string.Empty;
-        if (Parameters.TryGetValue(Args.Assembly, out string asmName))
+        if (Parameters.TryGetValue(ArgSwitch.Assembly, out string asmName))
         {
             assemblyFile = $"{asmName}.dll";
         }
@@ -233,7 +273,7 @@ public static partial class Program
 
         if (!TryFindFile(Working, assemblyFile, out FileInfo targetFile))
         {
-            ErrCode = 1002;
+            ErrCode = ErrCode.E1002;
 
             // return false;
         }
@@ -243,7 +283,7 @@ public static partial class Program
     }
     static bool ValidateSource()
     {
-        if (!Parameters.TryGetValue(Args.Source, out string target))
+        if (!Parameters.TryGetValue(ArgSwitch.Source, out string target))
         {
             Logger.WriteLine("Invalid Target Parameter");
 
@@ -327,7 +367,7 @@ public static partial class Program
     /// <summary>
     /// Attempts to set an initialization parameter
     /// </summary>
-    static bool TrySetParameter(Args argType, string parameter)
+    static bool TrySetParameter(ArgSwitch argType, string parameter)
     {
         return Parameters.TryAdd(argType, parameter);
     }
@@ -338,6 +378,15 @@ public static partial class Program
     {
         //  look for test cases - methods decorated with [TestCase]
         var types = assembly.GetTypes();
+
+        //  reduce types to the class type provided in arg parameters;
+        //  ASSUMPTION: single class target is supplied
+        if (Parameters.TryGetValue(ArgSwitch.Class, out string clsTarget))
+        {
+            types = types.Where(t => t.Name == clsTarget)
+                .ToArray();
+        }
+
         List<MethodInfo> methods;
 
         foreach (var t in types)

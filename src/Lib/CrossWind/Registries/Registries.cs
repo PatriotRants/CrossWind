@@ -40,7 +40,14 @@ public static class Registries
 
         return typeId;
     }
-
+    /// <summary>
+    /// Creates the controller object
+    /// </summary>
+    /// <typeparam name="TController">Controller type</typeparam>
+    /// <param name="registry">Registry</param>
+    /// <param name="name">Controller name</param>
+    /// <returns>Controller</returns>
+    /// <exception cref="ArgumentNullException"></exception>
     public static TController Create<TController>(this IRegistry<IController> registry, string name) where TController : IController
     {
         //  get controller type
@@ -60,6 +67,48 @@ public static class Registries
         registry.Add(controller);
 
         return controller;
+    }
+    /// <summary>
+    /// Get the controller
+    /// </summary>
+    /// <typeparam name="TController">Controller type</typeparam>
+    /// <param name="registry">Registry</param>
+    /// <param name="name">Controller name</param>
+    /// <returns>Controller; null if not found</returns>
+    public static TController Get<TController>(this IRegistry<IController> registry, string name)
+    {
+        registry.TryGet(c =>
+            c.Type == typeof(TController) && c.Name == name,
+            out IController controller);
+
+        return (TController)controller;
+    }
+    /// <summary>
+    /// Kills specified controllers of given type calling dispose.
+    /// </summary>
+    /// <typeparam name="TController">Controller type</typeparam>
+    /// <param name="registry">Registry</param>
+    /// <returns>TRUE if all items were removed; otherwise FALSE</returns>
+    public static bool Kill<TController>(this IRegistry<IController> registry)
+    {
+        var success = true;
+
+        // This method will kill all controllers of the given type
+        var controllers = registry.GetAll(typeof(TController))
+            .ToArray();
+
+        foreach (var c in controllers)
+        {
+            c.Dispose();
+            success &= registry.Remove(c);
+        }
+
+        return success;
+    }
+
+    public static IEnumerable<IController> GetAll<TController>(this IRegistry<IController> registry)
+    {
+        return registry.GetAll(typeof(TController));
     }
 
     //  Registry objects
@@ -84,6 +133,18 @@ public static class Registries
         {
             return registry.IndexOf((T)item) != -1;
         }
+        public IEnumerable<TInterface> GetAll(Type type)
+        {
+            return registry
+                .Select(t => (TInterface)t)
+                .Where(t => type.IsAssignableFrom(t.GetType()));
+        }
+
+        public bool Remove(TInterface item)
+        {
+            return registry.Remove((T)item);
+        }
+
         public bool TryGet(Func<TInterface, bool> find, out TInterface controller)
         {
             controller = registry
@@ -121,6 +182,15 @@ public static class Registries
         public bool Contains(TypeId item)
         {
             return registry.IndexOf(item) != -1;
+        }
+        public IEnumerable<TypeId> GetAll(Type type)
+        {
+            return registry
+                .Where(t => t.Type == type);
+        }
+        public bool Remove(TypeId item)
+        {
+            return registry.Remove(item);
         }
         public bool TryAdd(Type type, out TypeId typeId)
         {

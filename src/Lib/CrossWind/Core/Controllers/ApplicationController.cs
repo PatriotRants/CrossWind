@@ -1,18 +1,18 @@
 
 namespace ForgeWorks.CrossWind.Core;
 
-public delegate void AppStartUp();
-
 public class ApplicationController : Controller, IApplicationController
 {
     public event AppStartUp OnAppStartUp;
 
-    public ApplicationController(string name) : base(name, typeof(ApplicationController))
-    {
+    public ApplicationController(string name) : base(name) { }
 
+    public void Initialize(IController controller)
+    {
+        throw new NotImplementedException();
     }
 
-    public void StartUp()
+    internal void StartUp()
     {
         OnAppStartUp?.Invoke();
     }

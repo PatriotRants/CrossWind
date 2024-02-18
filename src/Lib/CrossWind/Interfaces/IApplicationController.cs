@@ -1,9 +1,11 @@
 
 namespace ForgeWorks.CrossWind.Core;
 
+public delegate void AppStartUp();
+
 public interface IApplicationController : IController
 {
     event AppStartUp OnAppStartUp;
 
-    void StartUp();
+    void Initialize(IController controller);
 }
