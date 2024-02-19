@@ -20,6 +20,13 @@ public abstract class Controller : IController
         };
     }
 
+    public virtual void Initialize() { /* optional */ }
+
+    public IIdentifier GetIdentifier()
+    {
+        return Id;
+    }
+
     public void Dispose()
     {
         OnDisposing?.Invoke(Id);
@@ -29,6 +36,11 @@ public abstract class Controller : IController
         GC.SuppressFinalize(this);
     }
 
+    protected void Raise(Func<Controller, Delegate> getDelegate, params object[] args)
+    {
+        var handler = getDelegate(this);
+        handler?.DynamicInvoke(args);
+    }
     // // TODO: override finalizer only if 'Dispose(bool disposing)' has code to free unmanaged resources
     // ~Controller()
     // {
@@ -50,4 +62,5 @@ public abstract class Controller : IController
             disposedValue = true;
         }
     }
+
 }

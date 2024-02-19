@@ -4,13 +4,16 @@ using static MinuteMan.LabKit.TestSet;
 using OpenTK.Mathematics;
 using OpenTK.Windowing.Common;
 
+using CrossWind.Prototype;
+
 using ForgeWorks.CrossWind.Core;
 using ForgeWorks.CrossWind.Collections;
 using ForgeWorks.CrossWind.Presentation;
 
 namespace CrossWind.UnitTests;
 
-public class ControllerTests
+#nullable disable
+public partial class ControllerTests
 {
     private static readonly IRegistry<IController> Controllers = Registries.Controllers;
 
@@ -44,8 +47,6 @@ public class ControllerTests
         Assert.IsTrue(Controllers.TryGet(c => c.Type == typeof(TestViewController), out IController item));
 
         CleanUp();
-
-        // Controller.Initialize(new TestViewController(vcName));
     }
     /*
         Expectation:    ViewController raises initialization event
@@ -92,7 +93,7 @@ public class ControllerTests
             Log($"[{nameof(InitializeViewController)}] :: Initializing ...");
         };
 
-        viewController.Initialize();
+        viewController.Initialize(Controller);
 
         Vassert.AreNotEqual(viewController.View, default);
 
@@ -101,20 +102,41 @@ public class ControllerTests
         Vassert.AreEqual(view.Title, $"Window [{vcName}]");
         Vassert.AreEqual(view.Size, vSize);
         Vassert.AreEqual(view.WindowState, vState);
+
+        CleanUp();
     }
-
-
     /*
         Expectation: ApplicationController will initialize an IController.
         Functions:  
                     - add IController to its collection (to be managed/disposed/etc)
                     - call IController.Initialize
-        Test:       ApplicationController has an IWindowController
+        Test:       ApplicationController has an IWindowController (HasWindow == TRUE)
         Discussion: ApplicationController does not know what kind of resources the subsequent 
                     IController requires. For instance, IViewController will require an 
                     IWindowController. It will request an IWindowController from the 
                     ApplicationController.
     */
+    [TestCase]
+    public void AppControllerInitViewController()
+    {
+        const string vcName = "TEST";
+        Vector2i vSize = new(1200, 900);
+        WindowState vState = WindowState.Maximized;
+
+        Controller.OnControllerInitialized += (id) =>
+        {
+            Log($"[{id.Name}:{id.Id.Short()}] :: Initialized ...");
+        };
+
+        var viewController = default(TestViewController);
+        Controller.Initialize(viewController = new TestViewController(vSize, vState, vcName));
+
+        Vassert.AreEqual(Controller.GetIdentifier(), viewController.AppController.GetIdentifier());
+
+        CleanUp();
+    }
+
+
 
     //  TODO: [RE: MinuteMan] Implement CleanUp attribute
     private static void CleanUp()
@@ -128,29 +150,6 @@ public class ControllerTests
 
         Assert.IsTrue(remain == 0 && count > remain);
         Log($"[CleanUp] Killed {count} <{nameof(TestViewController)}>");
-    }
-
-
-    /// <summary>
-    /// Test View Controller class
-    /// </summary>
-    private class TestViewController : ViewController
-    {
-        private Vector2i WindowSize { get; } = new(800, 600);
-        private WindowState WindowState { get; } = WindowState.Normal;
-
-        public TestViewController(string name) : base(name) { }
-        public TestViewController(Vector2i size, WindowState windowState, string name) : base(name)
-        {
-
-        }
-
-        protected override void OnInitialize(View view)
-        {
-            //  Set View parameters here
-            view.Size = WindowSize;
-            view.WindowState = WindowState;
-        }
     }
 }
 

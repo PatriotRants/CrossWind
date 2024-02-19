@@ -1,7 +1,8 @@
 using System.Reflection;
-using MinuteMan.Runtime;
-using MinuteMan.Logging;
+
 using MinuteMan.LabKit;
+using MinuteMan.Logging;
+using MinuteMan.Runtime;
 
 // See https://aka.ms/new-console-template for more information
 Console.WriteLine("Welcome to MinuteMan: the Minimum Unit Test Manager");
@@ -362,7 +363,7 @@ public static partial class Program
     {
         Logger.WriteLine("Loading Assembly ...");
 
-        return HasTestCases(assembly = Assembly.LoadFrom(Target.FullName));
+        return HasTestCases(assembly = Assembly.UnsafeLoadFrom(Target.FullName));
     }
     /// <summary>
     /// Attempts to set an initialization parameter
@@ -377,7 +378,8 @@ public static partial class Program
     static bool HasTestCases(Assembly assembly)
     {
         //  look for test cases - methods decorated with [TestCase]
-        var types = assembly.GetTypes();
+        var types = assembly.ExportedTypes
+            .ToArray();
 
         //  reduce types to the class type provided in arg parameters;
         //  ASSUMPTION: single class target is supplied

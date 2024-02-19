@@ -2,7 +2,7 @@ using ForgeWorks.CrossWind.Collections;
 
 namespace ForgeWorks.CrossWind;
 
-public struct ApplicationId
+public readonly struct ApplicationId : IIdentifier
 {
     private readonly TypeId typeId;
 

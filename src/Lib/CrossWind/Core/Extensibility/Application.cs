@@ -33,6 +33,7 @@ public abstract class Application : IApplication
     public void Run()
     {
         OnStartUp();
+        appController.Run();
     }
     public virtual void Dispose() { /* optional */ }
 

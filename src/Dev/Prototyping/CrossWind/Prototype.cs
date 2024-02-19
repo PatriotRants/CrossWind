@@ -3,12 +3,14 @@ using System.Reflection;
 using MinuteMan.LabKit;
 using static MinuteMan.LabKit.TestSet;
 
+using CrossWind.Prototype;
 using CrossWind.Prototype.Harness;
 using static CrossWind.Prototype.Harness.Handlers;
 using static CrossWind.Prototype.Harness.Evaluator;
 
 using ForgeWorks.CrossWind.Core;
-using ForgeWorks.CrossWind.Collections;
+using ForgeWorks.CrossWind.Presentation;
+using OpenTK.Windowing.Common;
 
 
 const string KEYBIND_CONFIG = "keybinding.cfg";
@@ -34,13 +36,16 @@ n = "No-Op App Controller";
 d = "run no-op application with application controller events";
 Evaluate<NoOpApplication>(SKIP, (app) =>
 {
+    CurrentApp = app;
+
     //  get the application controller
     IApplicationController controller = app.Controller;
     Vassert.AreNotEqual(controller, default);
 
-    controller.OnAppStartUp += () => OnNoOpAppStartUp(n);
+    controller.OnAppStartUp += OnNoOpAppStartUp;
     app.Run();
 
+    controller.OnAppStartUp -= OnNoOpAppStartUp;
 }, n, d);
 
 //  on start up, initialize Headless View Controller
@@ -48,9 +53,20 @@ n = "Headless View Controller";
 d = "on start up, initialize Headless View Controller";
 Evaluate<WindowControllerApp>(EVAL, (app) =>
 {
-    app.Controller.OnAppStartUp += () =>
-        app.OnAppStart(new HeadlessViewController(n));
+    CurrentApp = app;
+    app.Controller.OnAppStartUp += OnAppStartUp;
+    app.Run();
 
+    app.Controller.OnAppStartUp -= OnAppStartUp;
+}, n, d);
+
+//  execute application controller, full run with window
+n = "CrossWind Window";
+d = "execute application controller, full run with window";
+Evaluate<WindowControllerApp>(EVAL, (app) =>
+{
+    app.Controller.Initialize(new TestViewController(new(1200, 900), WindowState.Maximized, n));
+    app.Run();
 }, n, d);
 
 namespace CrossWind.Prototype.Harness
@@ -128,9 +144,16 @@ namespace CrossWind.Prototype.Harness
 
     internal class Handlers
     {
-        internal static void OnNoOpAppStartUp(string name)
+        internal static Application CurrentApp { get; set; }
+
+        internal static void OnNoOpAppStartUp()
         {
-            Log($"[{nameof(Handlers)}.{nameof(OnNoOpAppStartUp)}] {name}");
+            Log($"[{nameof(Handlers)}.{nameof(OnNoOpAppStartUp)}] {CurrentApp.Name}");
+        }
+        internal static void OnAppStartUp()
+        {
+            Log($"[{nameof(Handlers)}.{nameof(OnAppStartUp)}] {CurrentApp.Name}");
+            ((WindowControllerApp)CurrentApp).OnAppStart(new HeadlessViewController(CurrentApp.Name));
         }
     }
 

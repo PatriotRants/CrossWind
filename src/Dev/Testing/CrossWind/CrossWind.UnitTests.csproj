@@ -9,4 +9,7 @@
     <ProjectReference Include="..\..\..\Tools\MinuteMan.LabKit\MinuteMan.LabKit.csproj" />
     <ProjectReference Include="..\..\..\Lib\CrossWind\ForgeWorks.CrossWind.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Prototyping\CrossWind\CrossWind.Prototyping.csproj" />
+  </ItemGroup>
 </Project>

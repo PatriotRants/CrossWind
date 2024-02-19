@@ -2,7 +2,7 @@ using ForgeWorks.CrossWind.Collections;
 
 namespace ForgeWorks.CrossWind;
 
-public struct ControllerId
+public readonly struct ControllerId : IIdentifier
 {
     private readonly TypeId typeId;
 
@@ -17,7 +17,6 @@ public struct ControllerId
             typeId = Registries.Types.Add(type);
         }
     }
-
 
     public static bool operator ==(ControllerId id1, ControllerId id2)
     {

@@ -67,6 +67,10 @@ public class View : IView
         get;
         set;
     }
+    /// <summary>
+    /// Get the current <see cref="View"/> Controller
+    /// </summary>
+    public IViewController Controller { get; internal set; }
 
     internal View(string name)
     {

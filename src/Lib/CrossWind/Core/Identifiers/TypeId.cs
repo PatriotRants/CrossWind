@@ -1,12 +1,13 @@
 namespace ForgeWorks.CrossWind;
 
-public struct TypeId
+public readonly struct TypeId : IIdentifier
 {
     public static TypeId Empty { get; } = new(null);
 
     public Guid Id { get; init; } = Guid.Empty;
 
     public Type Type { get; }
+    public string Name => Type.Name;
 
     public TypeId(Type type)
     {

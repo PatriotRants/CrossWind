@@ -1,10 +1,23 @@
 using System.Reflection;
+using System.Text;
 using ForgeWorks.CrossWind.Core;
 
 namespace ForgeWorks.CrossWind.Collections;
 
 public static class Registries
 {
+    public static string Short(this Guid guid)
+    {
+        //  take last 6 bytes
+        byte[] bytes = guid.ToByteArray()
+            .TakeLast(6)
+            .ToArray();
+
+        return BitConverter.ToString(bytes)
+            .Replace("-", string.Empty)
+            .ToUpper();
+    }
+
     static Registries()
     {
         /*

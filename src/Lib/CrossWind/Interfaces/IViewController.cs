@@ -1,7 +1,7 @@
 
-using ForgeWorks.CrossWind.Presentation;
+using ForgeWorks.CrossWind.Core;
 
-namespace ForgeWorks.CrossWind.Core;
+namespace ForgeWorks.CrossWind.Presentation;
 
 public delegate void OnViewControllerInitializing(ControllerId controllerId);
 
@@ -21,8 +21,5 @@ public interface IViewController : IController
     /// </summary>
     IView View { get; }
 
-    /// <summary>
-    /// Initializes <see cref="ViewController"/> resources
-    /// </summary>
-    void Initialize();
+    void Initialize(IApplicationController controller);
 }
