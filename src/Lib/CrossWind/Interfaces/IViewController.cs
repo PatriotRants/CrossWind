@@ -18,10 +18,10 @@ public interface IViewController : IController
     /// Determines if the <see cref="ViewController"/> has been initialized 
     /// </summary>
     bool IsInitialized { get; }
-    /// <summary>
-    /// Get the current <see cref="ViewController"/>'s <see cref="View"/>
-    /// </summary>
-    IView View { get; }
+    Vector2i Size { get; }
+    WindowState State { get; }
+    Color4 Background { get; }
+    string Title { get; }
 
     void Initialize(IApplicationController controller);
 

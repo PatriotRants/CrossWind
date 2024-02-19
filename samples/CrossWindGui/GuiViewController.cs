@@ -20,79 +20,31 @@ namespace CrossWind.Gui;
 /// </summary>
 public class GuiViewController : ViewController
 {
-    private bool _frameBegun;
+    private static bool KHRDebugAvailable { get; set; }
+    private int GLVersion { get; set; }
+    private bool CompatibilityProfile { get; set; }
+    private int _vertexArray { get; set; }
+    private int _vertexBuffer { get; set; }
+    private int _vertexBufferSize { get; set; }
+    private int _indexBuffer { get; set; }
+    private int _indexBufferSize { get; set; }
 
-    private int _vertexArray;
-    private int _vertexBuffer;
-    private int _vertexBufferSize;
-    private int _indexBuffer;
-    private int _indexBufferSize;
+    private string FragmentSource =
+@"#version 330 core
 
-    //private Texture _fontTexture;
+uniform sampler2D in_fontTexture;
 
-    private int _fontTexture;
+in vec4 color;
+in vec2 texCoord;
 
-    private int _shader;
-    private int _shaderFontTextureLocation;
-    private int _shaderProjectionMatrixLocation;
+out vec4 outputColor;
 
-    private System.Numerics.Vector2 _scaleFactor = System.Numerics.Vector2.One;
-
-    private static bool KHRDebugAvailable = false;
-
-    private int GLVersion;
-    private bool CompatibilityProfile;
-    private readonly List<char> PressedChars = new List<char>();
-
-    private Vector2i Size { get; set; } = new(800, 600);
-    private WindowState State { get; } = WindowState.Normal;
-    private KeyboardState KeyboardState => WindowController.GetKeyboardState();
-    private MouseState MouseState => WindowController.GetMouseState();
-
-    public IApplicationController AppController { get; set; }
-
-    public GuiViewController(string name) : this(new(1200, 900), WindowState.Maximized, name) { }
-    private GuiViewController(Vector2i windowSize, WindowState windowState, string name) : base(name)
-    {
-        Size = windowSize;
-        State = windowState;
-    }
-
-    public override void WindowResized(int width, int height)
-    {
-        View.Size = Size = (width, height);
-    }
-
-    public void DestroyDeviceObjects()
-    {
-        Dispose();
-    }
-
-    public void CreateDeviceResources()
-    {
-        _vertexBufferSize = 10000;
-        _indexBufferSize = 2000;
-
-        int prevVAO = GL.GetInteger(GetPName.VertexArrayBinding);
-        int prevArrayBuffer = GL.GetInteger(GetPName.ArrayBufferBinding);
-
-        _vertexArray = GL.GenVertexArray();
-        GL.BindVertexArray(_vertexArray);
-        LabelObject(ObjectLabelIdentifier.VertexArray, _vertexArray, "ImGui");
-
-        _vertexBuffer = GL.GenBuffer();
-        GL.BindBuffer(BufferTarget.ArrayBuffer, _vertexBuffer);
-        LabelObject(ObjectLabelIdentifier.Buffer, _vertexBuffer, "VBO: ImGui");
-        GL.BufferData(BufferTarget.ArrayBuffer, _vertexBufferSize, IntPtr.Zero, BufferUsageHint.DynamicDraw);
-
-        _indexBuffer = GL.GenBuffer();
-        GL.BindBuffer(BufferTarget.ElementArrayBuffer, _indexBuffer);
-        LabelObject(ObjectLabelIdentifier.Buffer, _indexBuffer, "EBO: ImGui");
-        GL.BufferData(BufferTarget.ElementArrayBuffer, _indexBufferSize, IntPtr.Zero, BufferUsageHint.DynamicDraw);
-
-        RecreateFontDeviceTexture();
-
-        string VertexSource = @"#version 330 core
+void main()
+{
+    outputColor = color * texture(in_fontTexture, texCoord);
+}";
+    private string VertexSource =
+@"#version 330 core
 
 uniform mat4 projection_matrix;
 
@@ -109,77 +61,43 @@ void main()
     color = in_color;
     texCoord = in_texCoord;
 }";
-        string FragmentSource = @"#version 330 core
 
-uniform sampler2D in_fontTexture;
+    private bool _frameBegun { get; set; }
 
-in vec4 color;
-in vec2 texCoord;
+    //private Texture _fontTexture;
 
-out vec4 outputColor;
+    private int _fontTexture { get; set; }
 
-void main()
-{
-    outputColor = color * texture(in_fontTexture, texCoord);
-}";
+    private int _shader { get; set; }
+    private int _shaderFontTextureLocation { get; set; }
+    private int _shaderProjectionMatrixLocation { get; set; }
 
-        _shader = CreateProgram("ImGui", VertexSource, FragmentSource);
-        _shaderProjectionMatrixLocation = GL.GetUniformLocation(_shader, "projection_matrix");
-        _shaderFontTextureLocation = GL.GetUniformLocation(_shader, "in_fontTexture");
+    private Vector2 _scaleFactor = Vector2.One;
 
-        int stride = Unsafe.SizeOf<ImDrawVert>();
-        GL.VertexAttribPointer(0, 2, VertexAttribPointerType.Float, false, stride, 0);
-        GL.VertexAttribPointer(1, 2, VertexAttribPointerType.Float, false, stride, 8);
-        GL.VertexAttribPointer(2, 4, VertexAttribPointerType.UnsignedByte, true, stride, 16);
+    private List<char> PressedChars { get; init; } = new List<char>();
+    private KeyboardState KeyboardState => WindowController.GetKeyboardState();
+    private MouseState MouseState => WindowController.GetMouseState();
 
-        GL.EnableVertexAttribArray(0);
-        GL.EnableVertexAttribArray(1);
-        GL.EnableVertexAttribArray(2);
+    public IApplicationController AppController { get; set; }
 
-        GL.BindVertexArray(prevVAO);
-        GL.BindBuffer(BufferTarget.ArrayBuffer, prevArrayBuffer);
-
-        CheckGLError("End of ImGui setup");
-    }
-    /// <summary>
-    /// Recreates the device texture used to render text.
-    /// </summary>
-    public void RecreateFontDeviceTexture()
+    public GuiViewController(string name, string title = null) : this(new(1200, 900), WindowState.Maximized, name, title ?? name) { }
+    private GuiViewController(Vector2i windowSize, WindowState windowState, string name, string title) : base(name)
     {
-        ImGuiIOPtr io = ImGui.GetIO();
-        io.Fonts.GetTexDataAsRGBA32(out IntPtr pixels, out int width, out int height, out int bytesPerPixel);
-
-        int mips = (int)Math.Floor(Math.Log(Math.Max(width, height), 2));
-
-        int prevActiveTexture = GL.GetInteger(GetPName.ActiveTexture);
-        GL.ActiveTexture(TextureUnit.Texture0);
-        int prevTexture2D = GL.GetInteger(GetPName.TextureBinding2D);
-
-        _fontTexture = GL.GenTexture();
-        GL.BindTexture(TextureTarget.Texture2D, _fontTexture);
-        GL.TexStorage2D(TextureTarget2d.Texture2D, mips, SizedInternalFormat.Rgba8, width, height);
-        LabelObject(ObjectLabelIdentifier.Texture, _fontTexture, "ImGui Text Atlas");
-
-        GL.TexSubImage2D(TextureTarget.Texture2D, 0, 0, 0, width, height, PixelFormat.Bgra, PixelType.UnsignedByte, pixels);
-
-        GL.GenerateMipmap(GenerateMipmapTarget.Texture2D);
-
-        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)TextureWrapMode.Repeat);
-        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)TextureWrapMode.Repeat);
-
-        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMaxLevel, mips - 1);
-
-        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
-        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
-
-        // Restore state
-        GL.BindTexture(TextureTarget.Texture2D, prevTexture2D);
-        GL.ActiveTexture((TextureUnit)prevActiveTexture);
-
-        io.Fonts.SetTexID((IntPtr)_fontTexture);
-
-        io.Fonts.ClearTexData();
+        Title = title;
+        Size = windowSize;
+        State = windowState;
     }
+
+    public override void WindowResized(int width, int height)
+    {
+        Size = Size = (width, height);
+    }
+
+    public void DestroyDeviceObjects()
+    {
+        Dispose();
+    }
+
     /// <summary>
     /// Renders the ImGui draw list data.
     /// </summary>
@@ -231,7 +149,6 @@ void main()
 
         CompatibilityProfile = (GL.GetInteger((GetPName)All.ContextProfileMask) & (int)All.ContextCompatibilityProfileBit) != 0;
 
-
         IntPtr context = ImGui.CreateContext();
         ImGui.SetCurrentContext(context);
         var io = ImGui.GetIO();
@@ -241,7 +158,7 @@ void main()
         // Enable Docking
         io.ConfigFlags |= ImGuiConfigFlags.DockingEnable;
 
-        CreateDeviceResources();
+        CreateDeviceResources("ImGui");
 
         SetPerFrameImGuiData(1f / 60f);
 
@@ -249,6 +166,66 @@ void main()
         _frameBegun = true;
     }
 
+
+    /// <summary>
+    /// Sets per-frame data based on the associated window.
+    /// This is called by Update(float).
+    /// </summary>
+    public void SetPerFrameImGuiData(float deltaSeconds)
+    {
+        ImGuiIOPtr io = ImGui.GetIO();
+        io.DisplaySize = new(Size.X / _scaleFactor.X, Size.Y / _scaleFactor.Y);
+        io.DisplayFramebufferScale = new(_scaleFactor.X, _scaleFactor.Y);
+        io.DeltaTime = deltaSeconds; // DeltaTime is in seconds.
+    }
+
+    public static void LabelObject(ObjectLabelIdentifier objLabelIdent, int glObject, string name)
+    {
+        if (KHRDebugAvailable)
+            GL.ObjectLabel(objLabelIdent, glObject, name.Length, name);
+    }
+    public void CreateDeviceResources(string label)
+    {
+        _vertexBufferSize = 10000;
+        _indexBufferSize = 2000;
+
+        int prevVAO = GL.GetInteger(GetPName.VertexArrayBinding);
+        int prevArrayBuffer = GL.GetInteger(GetPName.ArrayBufferBinding);
+
+        _vertexArray = GL.GenVertexArray();
+        GL.BindVertexArray(_vertexArray);
+        LabelObject(ObjectLabelIdentifier.VertexArray, _vertexArray, label);
+
+        _vertexBuffer = GL.GenBuffer();
+        GL.BindBuffer(BufferTarget.ArrayBuffer, _vertexBuffer);
+        LabelObject(ObjectLabelIdentifier.Buffer, _vertexBuffer, $"VBO: {label}");
+        GL.BufferData(BufferTarget.ArrayBuffer, _vertexBufferSize, IntPtr.Zero, BufferUsageHint.DynamicDraw);
+
+        _indexBuffer = GL.GenBuffer();
+        GL.BindBuffer(BufferTarget.ElementArrayBuffer, _indexBuffer);
+        LabelObject(ObjectLabelIdentifier.Buffer, _indexBuffer, $"EBO: {label}");
+        GL.BufferData(BufferTarget.ElementArrayBuffer, _indexBufferSize, IntPtr.Zero, BufferUsageHint.DynamicDraw);
+
+        RecreateFontDeviceTexture();
+
+        _shader = CreateProgram(label, VertexSource, FragmentSource);
+        _shaderProjectionMatrixLocation = GL.GetUniformLocation(_shader, "projection_matrix");
+        _shaderFontTextureLocation = GL.GetUniformLocation(_shader, "in_fontTexture");
+
+        int stride = Unsafe.SizeOf<ImDrawVert>();
+        GL.VertexAttribPointer(0, 2, VertexAttribPointerType.Float, false, stride, 0);
+        GL.VertexAttribPointer(1, 2, VertexAttribPointerType.Float, false, stride, 8);
+        GL.VertexAttribPointer(2, 4, VertexAttribPointerType.UnsignedByte, true, stride, 16);
+
+        GL.EnableVertexAttribArray(0);
+        GL.EnableVertexAttribArray(1);
+        GL.EnableVertexAttribArray(2);
+
+        GL.BindVertexArray(prevVAO);
+        GL.BindBuffer(BufferTarget.ArrayBuffer, prevArrayBuffer);
+
+        CheckGLError("End of ImGui setup");
+    }
     public override void OnUpdateFrame(FrameEventArgs args)
     {
         Update(default);
@@ -268,17 +245,16 @@ void main()
         base.Dispose();
     }
 
-    protected override void OnInitialize(IApplicationController applicationController, View view)
+    protected override void OnInitialize(IApplicationController applicationController)
     {
         //  subscribe to application controller OnRun
         (AppController = applicationController).OnAppRun += OnRun;
 
         //  Set View parameters here
-        view.Size = Size;
-        view.WindowState = State;
-        view.Background = new(15, 15, 15, 0);
+        State = WindowState.Maximized;
+        Background = new(15, 15, 15, 0);
 
-        AppController.Initialize(WindowController = new WindowController(view));
+        AppController.Initialize(WindowController = new WindowController(this));
     }
 
 
@@ -295,23 +271,6 @@ void main()
         io.MouseWheelH = offset.X;
     }
 
-    private static void LabelObject(ObjectLabelIdentifier objLabelIdent, int glObject, string name)
-    {
-        if (KHRDebugAvailable)
-            GL.ObjectLabel(objLabelIdent, glObject, name.Length, name);
-    }
-
-    private static bool IsExtensionSupported(string name)
-    {
-        int n = GL.GetInteger(GetPName.NumExtensions);
-        for (int i = 0; i < n; i++)
-        {
-            string extension = GL.GetString(StringNameIndexed.Extensions, i);
-            if (extension == name) return true;
-        }
-
-        return false;
-    }
     private static int CreateProgram(string name, string vertexSource, string fragmentSoruce)
     {
         int program = GL.CreateProgram();
@@ -437,19 +396,7 @@ void main()
     {
         WindowController.Run();
     }
-    /// <summary>
-    /// Sets per-frame data based on the associated window.
-    /// This is called by Update(float).
-    /// </summary>
-    private void SetPerFrameImGuiData(float deltaSeconds)
-    {
-        ImGuiIOPtr io = ImGui.GetIO();
-        io.DisplaySize = new System.Numerics.Vector2(
-            View.Size.X / _scaleFactor.X,
-            View.Size.Y / _scaleFactor.Y);
-        io.DisplayFramebufferScale = _scaleFactor;
-        io.DeltaTime = deltaSeconds; // DeltaTime is in seconds.
-    }
+
     private void UpdateImGuiInput()
     {
         ImGuiIOPtr io = ImGui.GetIO();
@@ -483,6 +430,57 @@ void main()
         io.KeyAlt = KeyboardState.IsKeyDown(Keys.LeftAlt) || KeyboardState.IsKeyDown(Keys.RightAlt);
         io.KeyShift = KeyboardState.IsKeyDown(Keys.LeftShift) || KeyboardState.IsKeyDown(Keys.RightShift);
         io.KeySuper = KeyboardState.IsKeyDown(Keys.LeftSuper) || KeyboardState.IsKeyDown(Keys.RightSuper);
+    }
+
+    private static bool IsExtensionSupported(string name)
+    {
+        int n = GL.GetInteger(GetPName.NumExtensions);
+        for (int i = 0; i < n; i++)
+        {
+            string extension = GL.GetString(StringNameIndexed.Extensions, i);
+            if (extension == name) return true;
+        }
+
+        return false;
+    }
+    /// <summary>
+    /// Recreates the device texture used to render text.
+    /// </summary>
+    public void RecreateFontDeviceTexture()
+    {
+        ImGuiIOPtr io = ImGui.GetIO();
+        io.Fonts.GetTexDataAsRGBA32(out IntPtr pixels, out int width, out int height, out int bytesPerPixel);
+
+        int mips = (int)Math.Floor(Math.Log(Math.Max(width, height), 2));
+
+        int prevActiveTexture = GL.GetInteger(GetPName.ActiveTexture);
+        GL.ActiveTexture(TextureUnit.Texture0);
+        int prevTexture2D = GL.GetInteger(GetPName.TextureBinding2D);
+
+        _fontTexture = GL.GenTexture();
+        GL.BindTexture(TextureTarget.Texture2D, _fontTexture);
+        GL.TexStorage2D(TextureTarget2d.Texture2D, mips, SizedInternalFormat.Rgba8, width, height);
+        LabelObject(ObjectLabelIdentifier.Texture, _fontTexture, "ImGui Text Atlas");
+
+        GL.TexSubImage2D(TextureTarget.Texture2D, 0, 0, 0, width, height, PixelFormat.Bgra, PixelType.UnsignedByte, pixels);
+
+        GL.GenerateMipmap(GenerateMipmapTarget.Texture2D);
+
+        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)TextureWrapMode.Repeat);
+        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)TextureWrapMode.Repeat);
+
+        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMaxLevel, mips - 1);
+
+        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
+        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
+
+        // Restore state
+        GL.BindTexture(TextureTarget.Texture2D, prevTexture2D);
+        GL.ActiveTexture((TextureUnit)prevActiveTexture);
+
+        io.Fonts.SetTexID((IntPtr)_fontTexture);
+
+        io.Fonts.ClearTexData();
     }
     private void RenderImDrawData(ImDrawDataPtr draw_data)
     {
@@ -618,7 +616,7 @@ void main()
 
                     // We do _windowHeight - (int)clip.W instead of (int)clip.Y because gl has flipped Y when it comes to these coordinates
                     var clip = pcmd.ClipRect;
-                    GL.Scissor((int)clip.X, View.Size.Y - (int)clip.W, (int)(clip.Z - clip.X), (int)(clip.W - clip.Y));
+                    GL.Scissor((int)clip.X, Size.Y - (int)clip.W, (int)(clip.Z - clip.X), (int)(clip.W - clip.Y));
                     CheckGLError("Scissor");
 
                     if ((io.BackendFlags & ImGuiBackendFlags.RendererHasVtxOffset) != 0)

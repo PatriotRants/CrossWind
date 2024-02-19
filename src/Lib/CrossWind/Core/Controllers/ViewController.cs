@@ -1,8 +1,8 @@
+using OpenTK.Mathematics;
 using OpenTK.Windowing.Common;
 
 using ForgeWorks.CrossWind.Core;
 using ForgeWorks.CrossWind.Collections;
-using OpenTK.Mathematics;
 
 namespace ForgeWorks.CrossWind.Presentation;
 
@@ -17,17 +17,12 @@ public abstract class ViewController : Controller, IViewController
     /// <inheritdoc />
     /// </summary>
     public bool IsInitialized { get; private set; }
+    public string Title { get; init; }
+    public Vector2i Size { get; set; } = new(800, 600);
+    public WindowState State { get; set; } = WindowState.Normal;
+    public Color4 Background { get; set; } = Color.LightGray;
 
-    /// <summary>
-    /// Get or set current <see cref="ViewController"/>'s View
-    /// </summary>
-    protected View View { get; set; }
     protected IWindowController WindowController { get; set; }
-
-    /// <summary>
-    /// <inheritdoc />
-    /// </summary>
-    IView IViewController.View => View;
 
     /// <summary>
     /// Instantiates a new registered view controller 
@@ -44,7 +39,7 @@ public abstract class ViewController : Controller, IViewController
     public void Initialize(IApplicationController controller)
     {
         OnInitializing?.Invoke(Id);
-        OnInitialize(controller, View = new(Name) { Controller = this });
+        OnInitialize(controller);
 
         IsInitialized = true;
     }
@@ -54,7 +49,7 @@ public abstract class ViewController : Controller, IViewController
     /// <see cref="View"/> parameters and additional resources here.
     /// </summary>
     /// <param name="view"><see cref="ViewController"/>'s View</param>
-    protected virtual void OnInitialize(IApplicationController controller, View view) { /* optional */ }
+    protected virtual void OnInitialize(IApplicationController controller) { /* optional */ }
 
     /// <summary>
     /// [OPTIONAL]

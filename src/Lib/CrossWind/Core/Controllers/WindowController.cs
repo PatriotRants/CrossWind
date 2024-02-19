@@ -13,16 +13,16 @@ public class WindowController : Controller, IWindowController
     private IViewController ViewController { get; }
     private Window Window { get; }
 
-    public WindowController(View view) : base(view.Name)
+    public WindowController(IViewController viewController) : base(viewController.Name)
     {
         Registries.Controllers.Add(this);
-        ViewController = view.Controller;
+        ViewController = viewController;
 
-        Window = new(view.Size, view.Title, view.Name)
+        Window = new(viewController.Size, viewController.Title, viewController.Name)
         {
             Controller = this,
-            WindowState = view.WindowState,
-            Background = view.Background
+            WindowState = viewController.State,
+            Background = viewController.Background
         };
 
         Window.Load += ViewController.OnWindowLoaded;
