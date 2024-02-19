@@ -27,7 +27,7 @@ public abstract class Controller : IController
         return Id;
     }
 
-    public void Dispose()
+    public virtual void Dispose()
     {
         OnDisposing?.Invoke(Id);
 

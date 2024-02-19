@@ -1,5 +1,7 @@
+using OpenTK.Windowing.Common;
 
 using ForgeWorks.CrossWind.Core;
+using OpenTK.Mathematics;
 
 namespace ForgeWorks.CrossWind.Presentation;
 
@@ -22,4 +24,11 @@ public interface IViewController : IController
     IView View { get; }
 
     void Initialize(IApplicationController controller);
+
+    void Update(float deltaSeconds);
+
+    void OnWindowLoaded();
+    void WindowResized(int x, int y);
+    void MouseScroll(Vector2 offset);
+    void PressChar(char unicode);
 }

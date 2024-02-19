@@ -1,0 +1,4 @@
+{
+    "dotnet.defaultSolution": "ForgeWorks.CrossWind.sln",
+    "editor.defaultFormatter": "ms-dotnettools.csharp"
+}
