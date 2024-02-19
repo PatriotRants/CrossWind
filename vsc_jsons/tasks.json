@@ -1,0 +1,107 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "build all",
+            "command": "dotnet",
+            "type": "process",
+            "args": [
+                "build",
+                "${workspaceFolder}/ForgeWorks.CrossWind.sln",
+                "/property:GenerateFullPaths=true",
+                "/consoleloggerparameters:NoSummary"
+            ],
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "build tests",
+            "command": "dotnet",
+            "type": "process",
+            "args": [
+                "build",
+                "${workspaceFolder}/src/Dev/Testing/CrossWind/CrossWind.UnitTests.csproj",
+                "/property:GenerateFullPaths=true"
+            ],
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "build lib",
+            "command": "dotnet",
+            "type": "process",
+            "group": "build",
+            "args": [
+                "build",
+                "${workspaceFolder}/src/Lib/CrossWind/ForgeWorks.CrossWind.csproj",
+                "/property:GenerateFullPaths=true",
+                "/consoleloggerparameters:NoSummary"
+            ],
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "build prototypes",
+            "command": "dotnet",
+            "type": "process",
+            "args": [
+                "build",
+                "${workspaceFolder}/src/Dev/Prototyping/CrossWind/CrossWind.Prototyping.csproj",
+                "/property:GenerateFullPaths=true",
+                "/consoleloggerparameters:NoSummary"
+            ],
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "build minuteman",
+            "command": "dotnet",
+            "type": "process",
+            "args": [
+                "build",
+                "${workspaceFolder}/src/Tools/MinuteMan/MinuteMan.csproj",
+                "/property:GenerateFullPaths=true",
+                "/consoleloggerparameters:NoSummary"
+            ],
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "clean",
+            "command": "dotnet",
+            "type": "process",
+            "args": [
+                "clean",
+                "/consoleloggerparameters:NoSummary"
+            ],
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "publish",
+            "command": "dotnet",
+            "type": "process",
+            "args": [
+                "publish",
+                "${workspaceFolder}/ForgeWorks.sln",
+                "/property:GenerateFullPaths=true",
+                "/consoleloggerparameters:NoSummary"
+            ],
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "watch",
+            "command": "dotnet",
+            "type": "process",
+            "args": [
+                "watch",
+                "run",
+                "--project",
+                "${workspaceFolder}/ForgeWorks.sln"
+            ],
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "build crosswind",
+            "command": "cp ./src/Lib/CrossWind/bin/Debug/net7.0/ForgeWorks.CrossWind.dll ./dlls/ForgeWorks.CrossWind.dll",
+            "type": "shell",
+            "group": "build",
+            "problemMatcher": [],
+            "dependsOn":["clean", "build lib"]
+        }
+    ]
+}

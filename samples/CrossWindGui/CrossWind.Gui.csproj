@@ -5,13 +5,11 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>disable</Nullable>
   </PropertyGroup>
-  
   <ItemGroup>
     <Reference Include="ForgeWorks.CrossWind">
       <HintPath>..\..\dlls\ForgeWorks.CrossWind.dll</HintPath>
     </Reference>
   </ItemGroup>
-  
   <ItemGroup>
     <PackageReference Include="OpenTK" Version="4.8.2" />
   </ItemGroup>
