@@ -51,7 +51,7 @@ Evaluate<NoOpApplication>(SKIP, (app) =>
 //  on start up, initialize Headless View Controller
 n = "Headless View Controller";
 d = "on start up, initialize Headless View Controller";
-Evaluate<WindowControllerApp>(EVAL, (app) =>
+Evaluate<WindowControllerApp>(SKIP, (app) =>
 {
     CurrentApp = app;
     app.Controller.OnAppStartUp += OnAppStartUp;

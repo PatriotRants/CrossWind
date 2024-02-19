@@ -14,9 +14,9 @@ public class WindowController : Controller, IWindowController
         Registries.Controllers.Add(this);
         ViewController = view.Controller;
 
-        Window = new(view.Size.X, view.Size.Y, view.Title, view.Name)
+        Window = new(view.Size, view.Title, view.Name)
         {
-            State = view.WindowState,
+            Controller = this,
             Background = view.Background
         };
     }
