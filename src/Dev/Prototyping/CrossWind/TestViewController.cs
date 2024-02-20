@@ -14,9 +14,6 @@ namespace CrossWind.Prototype;
 /// </summary>
 public class TestViewController : ViewController
 {
-    private Vector2i Size { get; } = new(800, 600);
-    private WindowState State { get; } = WindowState.Normal;
-
     public IApplicationController AppController { get; set; }
 
     public TestViewController(string name) : base(name) { }
@@ -24,19 +21,18 @@ public class TestViewController : ViewController
     {
         Size = windowSize;
         State = windowState;
+        Title = name;
     }
 
-    protected override void OnInitialize(IApplicationController applicationController, View view)
+    protected override void OnInitialize(IApplicationController applicationController)
     {
         //  subscribe to application controller OnRun
         (AppController = applicationController).OnAppRun += OnRun;
 
         //  Set View parameters here
-        view.Size = Size;
-        view.WindowState = State;
-        view.Background = new(15, 15, 15, 0);
+        Background = new(15, 15, 15, 0);
 
-        AppController.Initialize(WindowController = new WindowController(view));
+        AppController.Initialize(WindowController = new WindowController(this));
     }
 
     private void OnRun(DateTime startTime)

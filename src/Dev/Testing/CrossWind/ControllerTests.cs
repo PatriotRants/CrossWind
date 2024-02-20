@@ -73,39 +73,6 @@ public partial class ControllerTests
         CleanUp();
     }
     /*
-        Expectation:    ViewController has a View object interface accessible
-        Function:       On initialization --
-                        - set View configuration
-                        - ?
-        Test:           Target IView has parameters initialized
-        Assumptions:    ?
-    */
-    [TestCase]
-    public void ViewControllerHasView()
-    {
-        const string vcName = "TEST";
-        Vector2i vSize = new(1200, 900);
-        WindowState vState = WindowState.Maximized;
-
-        IViewController viewController = new TestViewController(vSize, vState, vcName);
-        viewController.OnInitializing += (id) =>
-        {
-            Log($"[{nameof(InitializeViewController)}] :: Initializing ...");
-        };
-
-        viewController.Initialize(Controller);
-
-        Vassert.AreNotEqual(viewController.View, default);
-
-        var view = viewController.View;
-        Vassert.AreEqual(view.Name, vcName);
-        Vassert.AreEqual(view.Title, $"Window [{vcName}]");
-        Vassert.AreEqual(view.Size, vSize);
-        Vassert.AreEqual(view.WindowState, vState);
-
-        CleanUp();
-    }
-    /*
         Expectation: ApplicationController will initialize an IController.
         Functions:  
                     - add IController to its collection (to be managed/disposed/etc)
