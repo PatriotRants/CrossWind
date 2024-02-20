@@ -1,0 +1,10 @@
+using ForgeWorks.CrossWind.Core;
+
+namespace {namespace};
+
+public class {app_name}Application : Application
+{
+    public {app_name}Application(string name) : base(name)
+    {
+    }
+}

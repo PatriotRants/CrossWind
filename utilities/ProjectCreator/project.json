@@ -1,0 +1,28 @@
+{
+  "CrossWind": {
+    "Name": "BasicDemo",
+    "Version": "0.2.24.001",
+    "Root": "Dev/Local/CrossWind/main/demos",
+    "Project": "BasicDemo"
+  },
+  "Project": {
+    "Sdk": "Microsoft.NET.Sdk",
+    "PropertyGroup": {
+      "OutputType": "Exe",
+      "TargetFramework": "net7.0",
+      "RootNamespace": "CrossWind.Demo"
+    },
+    "ItemGroup": [
+      {
+        "$type": "dll",
+        "Include": "ForgeWorks.CrossWind",
+        "HintPath": "ForgeWorks.CrossWind.dll"
+      },
+      {
+        "$type": "pkg",
+        "Include": "OpenTK",
+        "Version": "4.8.2"
+      }
+    ]
+  }
+}

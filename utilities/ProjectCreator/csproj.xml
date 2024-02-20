@@ -1,0 +1,15 @@
+<Project Sdk="{sdk}">
+  <PropertyGroup>
+    <OutputType>{exe}</OutputType>
+    <TargetFramework>{target}</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="{ref_incl}">
+      <HintPath>bin/Debug/{target}/{hint}</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="{pkg_incl}" Version="{pkg_ver}" />
+  </ItemGroup>
+</Project>
