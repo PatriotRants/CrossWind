@@ -1,10 +1,22 @@
 using ForgeWorks.CrossWind.Core;
+using ForgeWorks.CrossWind.Collections;
+using ForgeWorks.CrossWind.Presentation;
 
 namespace {namespace};
 
 public class {app_name}Application : Application
 {
+    private WindowController windowController { get; }
+
     public {app_name}Application(string name) : base(name)
     {
+        //  WindowController adds itself to Registries
+        windowController = new WindowController("Demo", name);
+    }
+
+    protected override void OnStartUp()
+    {
+        base.OnStartUp();
+        windowController.Run();
     }
 }

@@ -18,7 +18,7 @@ const string PROJ_FILE = "csproj.xml";
 string[] SOURCES = {
     Path.Combine(ProjectSourcePath.Value, SRC_PATH, "CrossWindProgram.source"),
     Path.Combine(ProjectSourcePath.Value, SRC_PATH, "CrossWindApplication.source"),
-    Path.Combine(ProjectSourcePath.Value, SRC_PATH, "CrossWindViewController.source")
+    //Path.Combine(ProjectSourcePath.Value, SRC_PATH, "CrossWindViewController.source")
 };
 
 RunState runState = RunState.Initialize;
@@ -135,10 +135,10 @@ static bool Configure(ref RunState runState)
     var currentDirectory = Directory.GetCurrentDirectory();
 
     //  requires that the directory exists
-    var relative = Path.GetRelativePath(Template.CrossWind.Root, currentDirectory);
+    var relative = $"../{Path.GetRelativePath(Template.CrossWind.Root, ProjectSourcePath.Value)}/";
     Directory.SetCurrentDirectory(relative);
     string rootPath = Path.GetFullPath(Template.CrossWind.Root);
-    bool isOkay = (Root = new(rootPath)).Exists;
+    bool isOkay = Directory.Exists(rootPath) ? (Root = new(rootPath)).Exists : (Root = Directory.CreateDirectory(rootPath)).Exists;
 
     if (isOkay)
     {

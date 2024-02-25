@@ -5,5 +5,5 @@ Console.WriteLine("CrossWind: [{proj_name}]");
 const string APP_NAME = "{app_name}";
 
 var app = new {app_name}Application(APP_NAME);
-app.Controller.Initialize(new {app_name}ViewController(app.Name));
+
 app.Run();

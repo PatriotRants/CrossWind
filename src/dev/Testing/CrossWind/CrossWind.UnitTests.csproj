@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net7.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>disable</Nullable>
+    <RootNamespace>ForgeWorks.CrossWind.UnitTesting</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="ForgeWorks.CrossWind">
+      <HintPath>./../../../../dlls/ForgeWorks.CrossWind.dll</HintPath>
+    </Reference>
+    <Reference Include="MinuteMan.LabKit">
+      <HintPath>./../../../../dlls/MinuteMan.LabKit.dll</HintPath>
+    </Reference>
+    <PackageReference Include="OpenTK" Version="4.8.2" />
+  </ItemGroup>
+</Project>

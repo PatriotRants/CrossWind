@@ -1,16 +1,16 @@
 {
   "CrossWind": {
-    "Name": "BasicDemo",
+    "Name": "RailThorn",
     "Version": "0.2.24.001",
-    "Root": "Dev/Local/CrossWind/main/demos",
-    "Project": "BasicDemo"
+    "Root": "Local/RailThorn/main/src/lib",
+    "Project": "ForgeWorks.RailThorn"
   },
   "Project": {
     "Sdk": "Microsoft.NET.Sdk",
     "PropertyGroup": {
       "OutputType": "Exe",
       "TargetFramework": "net7.0",
-      "RootNamespace": "CrossWind.Demo"
+      "RootNamespace": "ForgeWorks.RailThorn"
     },
     "ItemGroup": [
       {

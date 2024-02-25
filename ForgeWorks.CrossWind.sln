@@ -5,9 +5,9 @@ VisualStudioVersion = 17.5.002.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{402B626D-AA38-4C8E-BD01-F380D7388072}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Lib", "Lib", "{66339D3D-5901-418A-93E7-9516F747F1C6}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "lib", "lib", "{66339D3D-5901-418A-93E7-9516F747F1C6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ForgeWorks.CrossWind", "src\Lib\CrossWind\ForgeWorks.CrossWind.csproj", "{E50891B0-0C4C-4C36-8FBB-8791FBBDDA20}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ForgeWorks.CrossWind", "src\lib\CrossWind\ForgeWorks.CrossWind.csproj", "{E50891B0-0C4C-4C36-8FBB-8791FBBDDA20}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
