@@ -1,5 +1,7 @@
+using OpenTK.Graphics.OpenGL4;
+using OpenTK.Windowing.Common;
+
 using ForgeWorks.CrossWind.Core;
-using ForgeWorks.CrossWind.Collections;
 using ForgeWorks.CrossWind.Presentation;
 
 namespace {namespace};

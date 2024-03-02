@@ -1,20 +1,139 @@
-using OpenTK.Graphics.OpenGL4;
 using OpenTK.Windowing.Common;
-using OpenTK.Windowing.Desktop;
-using OpenTK.Windowing.GraphicsLibraryFramework;
+using MouseState = OpenTK.Windowing.GraphicsLibraryFramework.MouseState;
+using KeyboardState = OpenTK.Windowing.GraphicsLibraryFramework.KeyboardState;
 
 using ForgeWorks.CrossWind.Core;
+using ForgeWorks.CrossWind.Components;
 using ForgeWorks.CrossWind.Collections;
-using Window = ForgeWorks.CrossWind.Components.Window;
 
 namespace ForgeWorks.CrossWind.Presentation;
 
 /// <summary>
 /// Publically accesible Window Controller
 /// </summary>
-public class WindowController : Controller, IWindowController
+public sealed class WindowController : Controller, IWindowController
 {
     private Window Window { get; }
+
+    /// <summary>
+    /// <inheritdoc />
+    /// </summary>
+    public event Func<IClient> Load;
+    /// <summary>
+    /// <inheritdoc />
+    /// </summary>
+    public event Action Unload;
+    // /// <summary>
+    // /// <inheritdoc />
+    // /// </summary>
+    // public Action<WindowPositionEventArgs> Move { get; set; } = (a) => { };
+    // /// <summary>
+    // /// <inheritdoc />
+    // /// </summary>
+    // public Action<ResizeEventArgs> Resize { get; set; } = (a) => { };
+    // /// <summary>
+    // /// <inheritdoc />
+    // /// </summary>
+    // public Action<FramebufferResizeEventArgs> FramebufferResize { get; set; } = (a) => { };
+    // /// <summary>
+    // /// <inheritdoc />
+    // /// </summary>
+    // public Action Refresh { get; set; } = () => { };
+    // /// <summary>
+    // /// <inheritdoc />
+    // /// </summary>
+    // public Action<CancelEventArgs> Closing { get; set; } = (a) => { };
+    // /// <summary>
+    // /// <inheritdoc />
+    // /// </summary>
+    // public Action<MinimizedEventArgs> Minimized { get; set; } = (a) => { };
+    // /// <summary>
+    // /// <inheritdoc />
+    // /// </summary>
+    // public Action<MaximizedEventArgs> Maximized { get; set; } = (a) => { };
+    // /// <summary>
+    // /// <inheritdoc />
+    // /// </summary>
+    // public Action<JoystickEventArgs> JoystickConnected { get; set; } = (a) => { };
+    // /// <summary>
+    // /// <inheritdoc />
+    // /// </summary>
+    // public Action<FocusedChangedEventArgs> FocusedChanged { get; set; } = (a) => { };
+    // /// <summary>
+    // /// <inheritdoc />
+    // /// </summary>
+    // public Action<KeyboardKeyEventArgs> KeyDown { get; set; } = (a) => { };
+    // /// <summary>
+    // /// <inheritdoc />
+    // /// </summary>
+    // public Action<KeyboardKeyEventArgs> KeyUp { get; set; } = (a) => { };
+    // /// <summary>
+    // /// <inheritdoc />
+    // /// </summary>
+    // public Action<TextInputEventArgs> TextInput { get; set; } = (a) => { };
+    // /// <summary>
+    // /// <inheritdoc />
+    // /// </summary>
+    // public Action MouseLeave { get; set; } = () => { };
+    // /// <summary>
+    // /// <inheritdoc />
+    // /// </summary>
+    // public Action MouseEnter { get; set; } = () => { };
+    // /// <summary>
+    // /// <inheritdoc />
+    // /// </summary>
+    // public Action<MouseButtonEventArgs> MouseDown { get; set; } = (a) => { };
+    // /// <summary>
+    // /// <inheritdoc />
+    // /// </summary>
+    // public Action<MouseButtonEventArgs> MouseUp { get; set; } = (a) => { };
+    // /// <summary>
+    // /// <inheritdoc />
+    // /// </summary>
+    // public Action<MouseMoveEventArgs> MouseMove { get; set; } = (a) => { };
+    // /// <summary>
+    // /// <inheritdoc />
+    // /// </summary>
+    // public Action<MouseWheelEventArgs> MouseWheel { get; set; } = (a) => { };
+    // /// <summary>
+    // /// <inheritdoc />
+    // /// </summary>
+    // public Action<FileDropEventArgs> FileDrop { get; set; } = (a) => { };
+    // /// <summary>
+    // /// <inheritdoc />
+    // /// </summary>
+    // public Action<FrameEventArgs> UpdateFrame { get; set; } = (a) => { };
+    // /// <summary>
+    // /// <inheritdoc />
+    // /// </summary>
+    // public Action<FrameEventArgs> RenderFrame { get; set; } = (a) => { };
+    // /// <summary>
+    // /// <inheritdoc />
+    // /// </summary>
+    // public Action SwapBuffers => Window.SwapBuffers;
+    // /// <summary>
+    // /// <inheritdoc />
+    // /// </summary>
+    // public double UpdateTime => Window.UpdateTime;
+    // /// <summary>
+    // /// <inheritdoc />
+    // /// </summary>
+    // public double UpdateFrequency
+    // {
+    //     get => Window.UpdateFrequency;
+    //     set => Window.UpdateFrequency = value;
+    // }
+    // /// <summary>
+    // /// <inheritdoc />
+    // /// </summary>
+    // public int ExpectedSchedulerPeriod
+    // {
+    //     get => Window.ExpectedSchedulerPeriod;
+    //     set => Window.ExpectedSchedulerPeriod = value;
+    // }
+
+    // public Color4 Background { get; set; }
+    // public Vector2i ClientSize { get; set; }
 
     /// <summary>
     /// Constructs a new WindowController object. Automatically registers itself in the Controllers Registry.
@@ -23,18 +142,14 @@ public class WindowController : Controller, IWindowController
     {
         Registries.Controllers.Add(this);
 
-        Window = new((width, height), title, name)
+        Window = new DefaultWindow((width, height), title, name)
         {
             WindowState = state,
-            Background = Color.FromArgb(0, 15, 15, 15)
+            Background = new(15, 15, 15, 0),
         };
 
-        Window.UpdateFrame += OnUpdateFrame;
-        Window.RenderFrame += OnRenderFrame;
-        Window.Resize += OnWindowResize;
-        Window.TextInput += OnTextInput;
-        Window.MouseDown += OnMouseDown;
-        Window.MouseWheel += OnMouseWheel;
+        Window.Load += OnLoad;
+        Window.Unload += Unload;
     }
 
     /// <summary>
@@ -43,7 +158,7 @@ public class WindowController : Controller, IWindowController
     /// <returns></returns>
     public KeyboardState GetKeyboardState()
     {
-        return Window.KeyboardState;
+        return Window?.GetKeyboardState();
     }
     /// <summary>
     /// <inheritdoc />
@@ -51,7 +166,7 @@ public class WindowController : Controller, IWindowController
     /// <returns></returns>
     public MouseState GetMouseState()
     {
-        return Window.MouseState;
+        return Window?.GetMouseState();
     }
     /// <summary>
     /// <inheritdoc />
@@ -61,62 +176,10 @@ public class WindowController : Controller, IWindowController
         Window?.Run();
     }
 
-    /// <summary>
-    /// <inheritdoc cref="GameWindow.OnUpdateFrame"/>
-    /// </summary>
-    /// <param name="args"></param>
-    protected virtual void OnUpdateFrame(FrameEventArgs args)
+    private void OnLoad()
     {
-        Window.IsDirty = true;
-    }
-    /// <summary>
-    /// <inheritdoc cref="GameWindow.OnRenderFrame"/>
-    /// </summary>
-    /// <param name="args"></param>
-    protected virtual void OnRenderFrame(FrameEventArgs args)
-    {
-        if (Window.IsDirty)
-        {
-            // Show that we can use OpenGL: Clear the window to cornflower blue.
-            GL.ClearColor(Window.Background);
-            GL.Clear(ClearBufferMask.ColorBufferBit);
-
-            // Show in the window the results of the rendering calls.
-            Window.SwapBuffers();
-            Window.IsDirty = false;
-        }
-    }
-    /// <summary>
-    /// Called when window is resized
-    /// </summary>
-    /// <param name="args"></param>
-    protected virtual void OnWindowResize(ResizeEventArgs args)
-    {
-        // Update the opengl viewport
-        GL.Viewport(0, 0, Window.ClientSize.X, Window.ClientSize.Y);
-    }
-    /// <summary>
-    /// Called when window receives text input
-    /// </summary>
-    /// <param name="args"></param>
-    protected virtual void OnTextInput(TextInputEventArgs args)
-    {
-
-    }
-    /// <summary>
-    /// Called when a mouse button is pressed
-    /// </summary>
-    /// <param name="args"></param>
-    protected virtual void OnMouseDown(MouseButtonEventArgs args)
-    {
-
-    }
-    /// <summary>
-    /// Called when the mouse wheel is scrolled
-    /// </summary>
-    /// <param name="args"></param>
-    protected virtual void OnMouseWheel(MouseWheelEventArgs args)
-    {
-
+        //  if no subscriber or null returned, use the default client
+        var client = Load?.Invoke() ?? new DefaultClient();
+        Window.SetClient(client);
     }
 }

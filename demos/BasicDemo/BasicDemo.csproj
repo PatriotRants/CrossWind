@@ -6,7 +6,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="ForgeWorks.CrossWind">
-      <HintPath>bin/Debug/net7.0/ForgeWorks.CrossWind.dll</HintPath>
+      <HintPath>./../../dlls/ForgeWorks.CrossWind.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
