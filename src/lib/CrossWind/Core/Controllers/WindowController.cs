@@ -18,7 +18,11 @@ public sealed class WindowController : Controller, IWindowController
     /// <summary>
     /// <inheritdoc />
     /// </summary>
-    public event Func<IClient> Load;
+    public event Func<IClient> RunClient;
+    /// <summary>
+    /// <inheritdoc />
+    /// </summary>
+    public event Action Load;
     /// <summary>
     /// <inheritdoc />
     /// </summary>
@@ -28,118 +32,6 @@ public sealed class WindowController : Controller, IWindowController
     /// <inheritdoc />
     /// </summary>
     public string Title => Window.Title;
-
-    // /// <summary>
-    // /// <inheritdoc />
-    // /// </summary>
-    // public Action<WindowPositionEventArgs> Move { get; set; } = (a) => { };
-    // /// <summary>
-    // /// <inheritdoc />
-    // /// </summary>
-    // public Action<ResizeEventArgs> Resize { get; set; } = (a) => { };
-    // /// <summary>
-    // /// <inheritdoc />
-    // /// </summary>
-    // public Action<FramebufferResizeEventArgs> FramebufferResize { get; set; } = (a) => { };
-    // /// <summary>
-    // /// <inheritdoc />
-    // /// </summary>
-    // public Action Refresh { get; set; } = () => { };
-    // /// <summary>
-    // /// <inheritdoc />
-    // /// </summary>
-    // public Action<CancelEventArgs> Closing { get; set; } = (a) => { };
-    // /// <summary>
-    // /// <inheritdoc />
-    // /// </summary>
-    // public Action<MinimizedEventArgs> Minimized { get; set; } = (a) => { };
-    // /// <summary>
-    // /// <inheritdoc />
-    // /// </summary>
-    // public Action<MaximizedEventArgs> Maximized { get; set; } = (a) => { };
-    // /// <summary>
-    // /// <inheritdoc />
-    // /// </summary>
-    // public Action<JoystickEventArgs> JoystickConnected { get; set; } = (a) => { };
-    // /// <summary>
-    // /// <inheritdoc />
-    // /// </summary>
-    // public Action<FocusedChangedEventArgs> FocusedChanged { get; set; } = (a) => { };
-    // /// <summary>
-    // /// <inheritdoc />
-    // /// </summary>
-    // public Action<KeyboardKeyEventArgs> KeyDown { get; set; } = (a) => { };
-    // /// <summary>
-    // /// <inheritdoc />
-    // /// </summary>
-    // public Action<KeyboardKeyEventArgs> KeyUp { get; set; } = (a) => { };
-    // /// <summary>
-    // /// <inheritdoc />
-    // /// </summary>
-    // public Action<TextInputEventArgs> TextInput { get; set; } = (a) => { };
-    // /// <summary>
-    // /// <inheritdoc />
-    // /// </summary>
-    // public Action MouseLeave { get; set; } = () => { };
-    // /// <summary>
-    // /// <inheritdoc />
-    // /// </summary>
-    // public Action MouseEnter { get; set; } = () => { };
-    // /// <summary>
-    // /// <inheritdoc />
-    // /// </summary>
-    // public Action<MouseButtonEventArgs> MouseDown { get; set; } = (a) => { };
-    // /// <summary>
-    // /// <inheritdoc />
-    // /// </summary>
-    // public Action<MouseButtonEventArgs> MouseUp { get; set; } = (a) => { };
-    // /// <summary>
-    // /// <inheritdoc />
-    // /// </summary>
-    // public Action<MouseMoveEventArgs> MouseMove { get; set; } = (a) => { };
-    // /// <summary>
-    // /// <inheritdoc />
-    // /// </summary>
-    // public Action<MouseWheelEventArgs> MouseWheel { get; set; } = (a) => { };
-    // /// <summary>
-    // /// <inheritdoc />
-    // /// </summary>
-    // public Action<FileDropEventArgs> FileDrop { get; set; } = (a) => { };
-    // /// <summary>
-    // /// <inheritdoc />
-    // /// </summary>
-    // public Action<FrameEventArgs> UpdateFrame { get; set; } = (a) => { };
-    // /// <summary>
-    // /// <inheritdoc />
-    // /// </summary>
-    // public Action<FrameEventArgs> RenderFrame { get; set; } = (a) => { };
-    // /// <summary>
-    // /// <inheritdoc />
-    // /// </summary>
-    // public Action SwapBuffers => Window.SwapBuffers;
-    // /// <summary>
-    // /// <inheritdoc />
-    // /// </summary>
-    // public double UpdateTime => Window.UpdateTime;
-    // /// <summary>
-    // /// <inheritdoc />
-    // /// </summary>
-    // public double UpdateFrequency
-    // {
-    //     get => Window.UpdateFrequency;
-    //     set => Window.UpdateFrequency = value;
-    // }
-    // /// <summary>
-    // /// <inheritdoc />
-    // /// </summary>
-    // public int ExpectedSchedulerPeriod
-    // {
-    //     get => Window.ExpectedSchedulerPeriod;
-    //     set => Window.ExpectedSchedulerPeriod = value;
-    // }
-
-    // public Color4 Background { get; set; }
-    // public Vector2i ClientSize { get; set; }
 
     /// <summary>
     /// Constructs a new WindowController object. Automatically registers itself in the Controllers Registry.
@@ -154,7 +46,7 @@ public sealed class WindowController : Controller, IWindowController
             Background = new(15, 15, 15, 0),
         };
 
-        Window.Load += OnLoad;
+        Window.Load += Load;
         Window.Unload += Unload;
     }
 
@@ -179,13 +71,15 @@ public sealed class WindowController : Controller, IWindowController
     /// </summary>
     public void Run()
     {
+        //  if no subscriber or null returned, use the default client
+        var client = RunClient?.Invoke() ?? new DefaultClient();
+        Window.SetClient(client);
+
         Window?.Run();
     }
 
-    private void OnLoad()
+    public void UpdateClient(IClient client)
     {
-        //  if no subscriber or null returned, use the default client
-        var client = Load?.Invoke() ?? new DefaultClient();
-        Window.SetClient(client);
+        Window.UpdateClient(client);
     }
 }

@@ -179,52 +179,6 @@ public abstract class Window
         _window.Run();
     }
 
-
-    private void OnLoad()
-    {
-        Load?.Invoke();
-
-        _window.UpdateFrame += Client.OnUpdateView;
-        _window.RenderFrame += Client.OnRenderView;
-        _window.Resize += Client.OnResizeWindow;
-        _window.Move += Client.OnWindowMove;
-        _window.FramebufferResize += Client.OnFramebufferResize;
-        _window.Refresh += Client.OnRefresh;
-        _window.Closing += Client.OnClosingWindow;
-        _window.Maximized += Client.OnWindowMaximized;
-        _window.Minimized += Client.OnWindowMinimized;
-        _window.KeyDown += Client.OnKeyDown;
-        _window.KeyUp += Client.OnKeyUp;
-        _window.TextInput += Client.OnTextInput;
-        _window.MouseLeave += Client.OnMouseLeaveWindow;
-        _window.MouseEnter += Client.OnMouseEnterWindow;
-        _window.MouseDown += Client.OnMouseDown;
-        _window.MouseWheel += Client.OnMouseWheel;
-        _window.FileDrop += Client.OnFileDrop;
-    }
-    private void OnUnload()
-    {
-        _window.UpdateFrame -= Client.OnUpdateView;
-        _window.RenderFrame -= Client.OnRenderView;
-        _window.Resize -= Client.OnResizeWindow;
-        _window.Move -= Client.OnWindowMove;
-        _window.FramebufferResize -= Client.OnFramebufferResize;
-        _window.Refresh -= Client.OnRefresh;
-        _window.Closing -= Client.OnClosingWindow;
-        _window.Maximized -= Client.OnWindowMaximized;
-        _window.Minimized -= Client.OnWindowMinimized;
-        _window.KeyDown -= Client.OnKeyDown;
-        _window.KeyUp -= Client.OnKeyUp;
-        _window.TextInput -= Client.OnTextInput;
-        _window.MouseLeave -= Client.OnMouseLeaveWindow;
-        _window.MouseEnter -= Client.OnMouseEnterWindow;
-        _window.MouseDown -= Client.OnMouseDown;
-        _window.MouseWheel -= Client.OnMouseWheel;
-        _window.FileDrop -= Client.OnFileDrop;
-
-        Unload?.Invoke();
-    }
-
     protected virtual void OnRenderFrame(FrameEventArgs args)
     {
 
@@ -247,6 +201,69 @@ public abstract class Window
 
     internal void SetClient(IClient client)
     {
-        (_client = client).Context = _window.Context;
+        _client = client;
+    }
+
+    internal void UpdateClient(IClient client)
+    {
+        UnSubEvents();
+        SetClient(client);
+        SubEvents();
+    }
+
+    private void OnLoad()
+    {
+        Load?.Invoke();
+        SubEvents();
+    }
+    private void OnUnload()
+    {
+        UnSubEvents();
+        Unload?.Invoke();
+    }
+    private void SubEvents()
+    {
+        //  set the context here
+        Client.Context = _window.Context;
+
+        //  subscribe events
+        _window.UpdateFrame += Client.OnUpdateView;
+        _window.RenderFrame += Client.OnRenderView;
+        _window.Resize += Client.OnResizeWindow;
+        _window.Move += Client.OnWindowMove;
+        _window.FramebufferResize += Client.OnFramebufferResize;
+        _window.Refresh += Client.OnRefresh;
+        _window.Closing += Client.OnClosingWindow;
+        _window.Maximized += Client.OnWindowMaximized;
+        _window.Minimized += Client.OnWindowMinimized;
+        _window.KeyDown += Client.OnKeyDown;
+        _window.KeyUp += Client.OnKeyUp;
+        _window.TextInput += Client.OnTextInput;
+        _window.MouseLeave += Client.OnMouseLeaveWindow;
+        _window.MouseEnter += Client.OnMouseEnterWindow;
+        _window.MouseDown += Client.OnMouseDown;
+        _window.MouseWheel += Client.OnMouseWheel;
+        _window.FileDrop += Client.OnFileDrop;
+    }
+    private void UnSubEvents()
+    {
+        //  unsubscribe events
+        _window.UpdateFrame -= Client.OnUpdateView;
+        _window.RenderFrame -= Client.OnRenderView;
+        _window.Resize -= Client.OnResizeWindow;
+        _window.Move -= Client.OnWindowMove;
+        _window.FramebufferResize -= Client.OnFramebufferResize;
+        _window.Refresh -= Client.OnRefresh;
+        _window.Closing -= Client.OnClosingWindow;
+        _window.Maximized -= Client.OnWindowMaximized;
+        _window.Minimized -= Client.OnWindowMinimized;
+        _window.KeyDown -= Client.OnKeyDown;
+        _window.KeyUp -= Client.OnKeyUp;
+        _window.TextInput -= Client.OnTextInput;
+        _window.MouseLeave -= Client.OnMouseLeaveWindow;
+        _window.MouseEnter -= Client.OnMouseEnterWindow;
+        _window.MouseDown -= Client.OnMouseDown;
+        _window.MouseWheel -= Client.OnMouseWheel;
+        _window.FileDrop -= Client.OnFileDrop;
     }
 }
