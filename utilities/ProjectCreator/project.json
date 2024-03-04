@@ -1,16 +1,16 @@
 {
   "CrossWind": {
-    "Name": "RailThorn",
+    "Name": "Infiniminer2_0",
     "Version": "0.2.24.001",
-    "Root": "Local/RailThorn/main/src/lib",
-    "Project": "ForgeWorks.RailThorn"
+    "Root": "/home/david/Dev/Local/Infiniminer/main/src/lib",
+    "Project": "Infiniminer2_0"
   },
   "Project": {
     "Sdk": "Microsoft.NET.Sdk",
     "PropertyGroup": {
       "OutputType": "Exe",
       "TargetFramework": "net7.0",
-      "RootNamespace": "ForgeWorks.RailThorn"
+      "RootNamespace": "ForgeWorks.Infiniminer"
     },
     "ItemGroup": [
       {

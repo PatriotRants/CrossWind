@@ -14,6 +14,12 @@ public interface IWindowController : IController
     // Summary:
     //     Occurs before the window is destroyed.
     event Action Unload;
+
+    /// <summary>
+    /// Get the Window Title
+    /// </summary>
+    public string Title { get; }
+
     /*     /// <summary>
         /// Occurs whenever the window is moved.
         /// </summary>

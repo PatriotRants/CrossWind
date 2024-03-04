@@ -135,7 +135,7 @@ static bool Configure(ref RunState runState)
     var currentDirectory = Directory.GetCurrentDirectory();
 
     //  requires that the directory exists
-    var relative = $"../{Path.GetRelativePath(Template.CrossWind.Root, ProjectSourcePath.Value)}/";
+    var relative = $"{Path.GetRelativePath(ProjectSourcePath.Value, Template.CrossWind.Root)}";
     Directory.SetCurrentDirectory(relative);
     string rootPath = Path.GetFullPath(Template.CrossWind.Root);
     bool isOkay = Directory.Exists(rootPath) ? (Root = new(rootPath)).Exists : (Root = Directory.CreateDirectory(rootPath)).Exists;

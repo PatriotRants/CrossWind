@@ -23,6 +23,12 @@ public sealed class WindowController : Controller, IWindowController
     /// <inheritdoc />
     /// </summary>
     public event Action Unload;
+
+    /// <summary>
+    /// <inheritdoc />
+    /// </summary>
+    public string Title => Window.Title;
+
     // /// <summary>
     // /// <inheritdoc />
     // /// </summary>
@@ -138,11 +144,11 @@ public sealed class WindowController : Controller, IWindowController
     /// <summary>
     /// Constructs a new WindowController object. Automatically registers itself in the Controllers Registry.
     /// </summary>
-    public WindowController(string name, string title, int width = 800, int height = 900, WindowState state = WindowState.Maximized) : base(name)
+    public WindowController(string name, string title, WindowState state = WindowState.Maximized) : base(name)
     {
         Registries.Controllers.Add(this);
 
-        Window = new DefaultWindow((width, height), title, name)
+        Window = new DefaultWindow(title, name)
         {
             WindowState = state,
             Background = new(15, 15, 15, 0),

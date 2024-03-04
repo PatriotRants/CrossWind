@@ -4,11 +4,11 @@ namespace ForgeWorks.CrossWind.Components;
 
 public class DefaultWindow : Window
 {
-    public DefaultWindow() : this((800, 600), "Window", "Window")
+    public DefaultWindow() : this("Window", "Window")
     {
     }
 
-    public DefaultWindow(Vector2i size, string title, string name) : base(size, title, name)
+    public DefaultWindow(string title, string name) : base(title, name)
     {
     }
 }

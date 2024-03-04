@@ -1,7 +1,6 @@
 using System.ComponentModel;
 
 using OpenTK.Mathematics;
-using OpenTK.Graphics.OpenGL4;
 using OpenTK.Windowing.Common;
 using OpenTK.Windowing.Desktop;
 
@@ -14,6 +13,7 @@ public abstract class Window
 {
     private GameWindow _window;
     private IClient _client;
+    private string _name;
 
     /// <summary>
     /// Get the current <see cref="WindowController"/>
@@ -150,16 +150,14 @@ public abstract class Window
         get;
         set;
     }
-    public string Name { get; }
-    public string Title { get; }
     public Vector2i ClientSize { get; }
     public IClient Client => _client;
+    public string Title { get; }
 
-    internal Window() : this((800, 600), nameof(Window), "Window") { }
-    internal Window(Vector2i size, string title, string name)
+    internal Window() : this(nameof(Window), "Window") { }
+    internal Window(string title, string name)
     {
-        ClientSize = size;
-        Name = name;
+        _name = name;
         Title = title;
     }
 
@@ -167,9 +165,9 @@ public abstract class Window
     {
         _window = new GameWindow(GameWindowSettings.Default, new NativeWindowSettings()
         {
-            Title = Title,
-            ClientSize = ClientSize,
-            WindowState = WindowState
+            Title = _client?.Title ?? Title,
+            ClientSize = _client?.ClientSize ?? (800, 600),
+            WindowState = _client?.WindowState ?? WindowState.Normal
         });
 
         _window.Load += OnLoad;

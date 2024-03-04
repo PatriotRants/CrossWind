@@ -9,13 +9,16 @@ namespace ForgeWorks.CrossWind.Components;
 
 public class DefaultClient : IClient
 {
-    public Color4 Background { get; set; }
     public IGLFWGraphicsContext Context { get; set; }
+    public Color4 Background { get; set; }
     public Vector2i ClientSize { get; set; }
+    public string Title { get; set; }
+    public Vector2i Size { get; set; }
+    public WindowState WindowState { get; set; }
 
     public void OnRenderView(FrameEventArgs args)
     {
-        Console.WriteLine("Client.OnRender");
+        Console.WriteLine($"{nameof(DefaultClient)}.{nameof(OnRenderView)}");
 
         // Show that we can use OpenGL: Clear the window to cornflower blue.
         GL.ClearColor(Background);
@@ -70,7 +73,7 @@ public class DefaultClient : IClient
     }
     public void OnResizeWindow(ResizeEventArgs args)
     {
-        Console.WriteLine("Client.OnResize");
+        Console.WriteLine($"{nameof(DefaultClient)}.{nameof(OnResizeWindow)}");
 
         // Update the opengl viewport
         GL.Viewport(0, 0, ClientSize.X, ClientSize.Y);

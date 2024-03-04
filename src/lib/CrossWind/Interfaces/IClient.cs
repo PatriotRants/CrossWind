@@ -1,4 +1,6 @@
 using System.ComponentModel;
+
+using OpenTK.Mathematics;
 using OpenTK.Windowing.Common;
 using OpenTK.Windowing.Desktop;
 
@@ -7,6 +9,9 @@ namespace ForgeWorks.CrossWind.Components;
 public interface IClient
 {
     IGLFWGraphicsContext Context { get; set; }
+    string Title { get; set; }
+    Vector2i ClientSize { get; set; }
+    WindowState WindowState { get; set; }
 
     void OnRenderView(FrameEventArgs args);
     void OnUpdateView(FrameEventArgs args);
